@@ -1,0 +1,106 @@
+---
+title: "Plotly Examples"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: cerulean
+---
+
+```{r}
+library(tidyverse)
+library(viridis)
+library(p8105.datasets)
+library(plotly)
+library(patchwork)
+```
+
+
+loading and cleaning data
+```{r}
+data("rest_inspec") 
+
+rest_inspec = rest_inspec %>% 
+  mutate(year = lubridate::year(inspection_date))
+  
+```
+
+
+percent critical violations by food type
+```{r}
+critical_violations = rest_inspec %>% 
+  select(boro, cuisine_description, critical_flag) %>% 
+  filter(boro == "MANHATTAN") %>% 
+  group_by(cuisine_description) %>% 
+  summarize(critical_pct = sum(
+    critical_flag == "Critical")/sum(critical_flag == "Critical" | critical_flag == "Not Critical")) %>% 
+  mutate(
+    critical_rank = rank(-critical_pct),
+    cuisine_description = as.factor(cuisine_description),
+    cuisine_description = fct_reorder(cuisine_description, -critical_rank))
+
+
+highest10 = critical_violations %>% 
+  filter(critical_rank <= 10) %>% 
+  ggplot(aes(x = cuisine_description, y = critical_pct)) +
+  geom_bar(stat = "identity", fill = "red") +
+  coord_flip() +
+  labs(
+    x = "",
+    y = "",
+    title = "10 cuisines with lowest percent critical violations") +
+  scale_y_continuous(breaks = seq(from = 0, to = 1, by = 0.2), limits = c(0, 1))
+
+
+lowest10 = critical_violations %>% 
+  filter(critical_rank >= 73) %>% 
+  ggplot(aes(x = cuisine_description, y = critical_pct)) +
+  geom_bar(stat = "identity", fill = "blue") +
+  coord_flip() +
+  labs(
+    x = "Cuisine Type",
+    y = "Percent of violations deemed critical",
+    title = "10 cuisines with highest percent critical violations") +
+  scale_y_continuous(breaks = seq(from = 0, to = 1, by = 0.2), limits = c(0, 1))
+
+
+lowest10 + highest10
+```
+
+
+mean score for initial inspection by borough (box plot)
+restrict to 2017?
+```{r}
+mean_score = rest_inspec %>% 
+  filter(inspection_type == "Cycle Inspection / Initial Inspection" | inspection_type == "Administrative Miscellaneous / Initial Inspection") %>% 
+  filter(boro == "BRONX" | boro == "BROOKLYN" | boro == "MANHATTAN" | boro == "QUEENS" | boro == "STATEN ISLAND") %>% 
+  group_by(boro) %>% 
+  ggplot(aes(x = boro, y = score)) +
+    geom_boxplot() +
+    labs(
+      x = "Borough",
+      y = "score",
+      title = "Distribution of scores for intial inspections by borough"
+    )
+
+mean_score
+```
+
+
+
+does inspection frequency change over time change over time?
+
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
+
