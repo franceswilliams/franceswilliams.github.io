@@ -1,22 +1,24 @@
 ---
-title: "Plotly Examples"
+title: "Dashboard"
 output: 
-  html_document:
-    toc: true
-    toc_float: true
-    theme: cerulean
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
 ---
 
-```{r}
+```{r setup, include=FALSE}
+library(flexdashboard)
 library(tidyverse)
-library(viridis)
 library(p8105.datasets)
 library(plotly)
 library(patchwork)
 ```
 
 
-loading and cleaning data
+Column {data-width=650}
+-----------------------------------------------------------------------
+
+### Chart A
 ```{r}
 data("rest_inspec") 
 
@@ -28,24 +30,59 @@ rest_inspec = rest_inspec %>%
     filter(
       year == 2016,
       boro == "BRONX" | boro == "BROOKLYN" | boro == "MANHATTAN" | boro == "QUEENS" | boro == "STATEN ISLAND") 
-  
+
+violations_overtime = rest_inspec %>% 
+  filter(
+    inspection_type == "Cycle Inspection / Initial Inspection" | inspection_type == "Administrative Miscellaneous / Initial Inspection",
+    critical_flag == "Critical" | critical_flag == "Not Critical") %>% 
+  group_by(boro, month) %>% 
+  summarize(count = n()) %>% 
+  ungroup() %>% 
+  ggplot(aes(x = month, y = count, color = boro, group = boro)) + 
+  geom_line() +
+  labs(
+    x = "Month",
+    y = "Number of all violations",
+    title = "Number of violations for initial restaurant inspections in NYC by month, 2016"
+  )
+
+ggplotly(violations_overtime)
   
 ```
 
+### Chart B
+```{r}
+mean_score = rest_inspec %>% 
+  filter(
+    inspection_type == "Cycle Inspection / Initial Inspection" | inspection_type == "Administrative Miscellaneous / Initial Inspection") %>% 
+  ggplot(aes(x = boro, y = score)) +
+    geom_boxplot() +
+    labs(
+      x = "Borough",
+      y = "score",
+      title = "Distribution of scores for intial inspections by borough, 2016"
+    )
 
-percent critical violations by food type
+ggplotly(mean_score)
+```
+
+
+Column {data-width=350}
+-----------------------------------------------------------------------
+
+### Chart C1
 ```{r}
 critical_violations = rest_inspec %>% 
   select(boro, cuisine_description, critical_flag) %>% 
   filter(boro == "MANHATTAN") %>% 
   group_by(cuisine_description) %>% 
   summarize(critical_pct = sum(
-    critical_flag == "Critical")/sum(critical_flag == "Critical" | critical_flag == "Not Critical")) %>% 
+    critical_flag == "Critical")/sum(critical_flag == "Critical" | critical_flag == "Not Critical")) %>%
+  ungroup() %>% 
   mutate(
     critical_rank = rank(-critical_pct),
     cuisine_description = as.factor(cuisine_description),
     cuisine_description = fct_reorder(cuisine_description, -critical_rank))
-
 
 highest10 = critical_violations %>% 
   filter(critical_rank <= 10) %>% 
@@ -55,10 +92,15 @@ highest10 = critical_violations %>%
   labs(
     x = "",
     y = "Percent of violations deemed critical",
-    title = "10 cuisines with highest \n percent critical violations") +
+    title = "10 cuisines with highest percent critical violations") +
   scale_y_continuous(breaks = seq(from = 0, to = 1, by = 0.2), limits = c(0, 1))
 
+ggplotly(highest10)
+```
 
+
+### Chart C2
+```{r}
 lowest10 = critical_violations %>% 
   filter(critical_rank >= 73) %>% 
   ggplot(aes(x = cuisine_description, y = critical_pct)) +
@@ -67,53 +109,12 @@ lowest10 = critical_violations %>%
   labs(
     x = "Cuisine Type",
     y = "Percent of violations deemed critical",
-    title = "10 cuisines with lowest \n percent critical violations") +
+    title = "10 cuisines with lowest percent critical violations") +
   scale_y_continuous(breaks = seq(from = 0, to = 1, by = 0.2), limits = c(0, 1))
 
-
-lowest10 + highest10
+ggplotly(lowest10)
 ```
 
-
-mean score for initial inspection by borough (box plot)
-restrict to 2017?
-```{r}
-mean_score = rest_inspec %>% 
-  filter(
-    inspection_type == "Cycle Inspection / Initial Inspection" | inspection_type == "Administrative Miscellaneous / Initial Inspection") %>% 
-  group_by(boro) %>% 
-  ggplot(aes(x = boro, y = score)) +
-    geom_boxplot() +
-    labs(
-      x = "Borough",
-      y = "score",
-      title = "Distribution of scores for intial inspections by borough"
-    )
-
-mean_score
-```
-
-
-
-does inspection frequency change over time change over time?
-
-```{r}
-violations_overtime = rest_inspec %>% 
-  filter(
-    inspection_type == "Cycle Inspection / Initial Inspection" | inspection_type == "Administrative Miscellaneous / Initial Inspection",
-    critical_flag == "Critical" | critical_flag == "Not Critical") %>% 
-  group_by(boro, month) %>% 
-  summarize(count = n()) %>% 
-  ggplot(aes(x = month, y = count, color = boro, group = boro)) + 
-  geom_line() +
-  labs(
-    x = "Month",
-    y = "Number of all violations",
-    title = "Number of violations in NYC by month, 2016"
-  )
-
-violations_overtime
-```
 
 
 

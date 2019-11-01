@@ -1,0 +1,14 @@
+name: "Frances's Website"
+output_dir: "."
+navbar:
+  title: "Home"
+  right:
+    - text: "Dashboard"
+      href: plotly.html
+    - icon: fa-envelope fa-lg
+      href: mailto:<frances.williams@columbia.edu>
+    - icon: fa-github fa-lg
+      href: http://github.com/franceswilliams/
+output:
+  html_document:
+    theme: journal
