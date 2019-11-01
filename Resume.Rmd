@@ -1,0 +1,8 @@
+---
+title: "Resume/CV"
+output: html_document
+---
+
+# Please check out my CV!
+
+My full CV is available [here](files/Williams_Resume_Nov2019.pdf). 
