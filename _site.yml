@@ -3,10 +3,14 @@ output_dir: "."
 navbar:
   title: "Home"
   right:
+    - text: "Resume/CV"
+      href: Resume.html
     - text: "Dashboard"
       href: plotly.html
     - icon: fa-envelope fa-lg
       href: mailto:<frances.williams@columbia.edu>
+    - icon: fa-linkedin fa-lg
+      href: http://linkedin.com/in/frances-m-williams/    
     - icon: fa-github fa-lg
       href: http://github.com/franceswilliams/
 output:
